@@ -5,8 +5,15 @@ import kotlinx.coroutines.flow.Flow
 
 interface DonorRepository {
 
+    abstract val donorDao: Any
+
     suspend fun addDonor(donor: Donor)
 
-    fun getAllDonors(): Flow<List<Donor>>
+    suspend fun updateDonor(donor: Donor)
 
+    suspend fun deleteDonorById(id: String)
+
+    suspend fun getDonorById(id: String): Donor?
+
+    fun getAllDonors(): Flow<List<Donor>>
 }

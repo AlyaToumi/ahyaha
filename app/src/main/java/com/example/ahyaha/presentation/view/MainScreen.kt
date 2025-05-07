@@ -10,74 +10,72 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.ahyaha.presentation.viewmodel.BloodTypeViewModel
-import com.example.ahyaha.presentation.viewmodel.DonorViewModel
+import com.example.ahyaha.presentation.auth.LoginScreen
+import com.example.ahyaha.presentation.viewmodel.*
 import com.example.ahyaha.presentation.view.components.*
 import com.example.ahyaha.ui.theme.PlasmaOrange
+
+// ✅ لضمان عمل delegation بشكل صحيح
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @Composable
 fun MainScreen(
     donorViewModel: DonorViewModel,
     bloodTypeViewModel: BloodTypeViewModel,
-    navController: NavController, // ✅ تأكد من تمرير NavController
-    modifier: Modifier = Modifier
+    navController: NavController,
+    navigationViewModel: NavigationViewModel = viewModel()
 ) {
-    val donorState by donorViewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
-    var searchText by remember { mutableStateOf("") }
+    when (navigationViewModel.currentScreen.value) {
+        "login" -> LoginScreen(
+            onLoginSuccess = { navigationViewModel.navigateTo("main") }
+        )
 
-    val filteredDonors = remember(searchText, donorState.donors) {
-        donorState.donors.filter { it.name.contains(searchText, ignoreCase = true) }
-    }
+        "profile" -> ProfileScreen()
 
-    Scaffold(
-        bottomBar = { BottomNavigationBar { selectedTab = it } },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("addDonor") }, // ✅ التنقل للشاشة الصحيحة
-                containerColor =PlasmaOrange,
-                elevation = FloatingActionButtonDefaults.elevation(8.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add a donor")
+        "main" -> {
+            val donorState by donorViewModel.uiState.collectAsState()
+            var selectedTab by remember { mutableStateOf(0) }
+            var searchText by remember { mutableStateOf("") }
+
+            val filteredDonors = remember(searchText, donorState.donors) {
+                donorState.donors.filter {
+                    it.name.contains(searchText, ignoreCase = true)
+                }
             }
 
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
-            TopBar(searchText = searchText, onSearchTextChanged = { searchText = it })
-            BloodTypesSection()
-            ImageSection()
-            RegularDonorsSection(donors = filteredDonors)
-            Events()
-            ActivitySection()
-            RecentPostsSection()
+            Scaffold(
+                bottomBar = { BottomNavigationBar { selectedTab = it } },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = { navController.navigate("addDonor") },
+                        containerColor = PlasmaOrange,
+                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Add a donor")
+                    }
+                }
+            ) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    TopBar(
+                        searchText = searchText,
+                        onSearchTextChanged = { searchText = it }
+                    )
+                    BloodTypesSection()
+                    ImageSection()
+                    RegularDonorsSection(donors = filteredDonors)
+                    Events()
+                    ActivitySection()
+                    RecentPostsSection()
+                }
+            }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

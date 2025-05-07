@@ -1,11 +1,16 @@
 package com.example.ahyaha.data.repository
+import com.example.ahyaha.data.local.DonorDao
+import com.example.ahyaha.data.local.toEntity
+import com.example.ahyaha.data.local.toDomain
 
 import com.example.ahyaha.data.model.Donor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.map
 import java.util.Date
 
-class DonorRepositoryImpl : DonorRepository {
+class DonorRepositoryImpl(override val donorDao: DonorDao
+) : DonorRepository {
 
 
     private val _donors = mutableListOf(
@@ -97,12 +102,29 @@ class DonorRepositoryImpl : DonorRepository {
     }
 
 
-    override fun getAllDonors(): Flow<List<Donor>> = _donorFlow
-
     override suspend fun addDonor(donor: Donor) {
-        _donors.add(donor)
-        _donorFlow.emit(_donors.toList())
+        donorDao.insertDonor(donor.toEntity())
     }
 
+    override suspend fun updateDonor(donor: Donor) {
+        donorDao.updateDonor(donor.toEntity())
+    }
+
+    override suspend fun deleteDonorById(id: String) {
+        donorDao.deleteDonorById(id)
+    }
+
+    override suspend fun getDonorById(id: String): Donor? {
+        return donorDao.getDonorById(id)?.toDomain()
+    }
+
+    override fun getAllDonors(): Flow<List<Donor>> {
+        return donorDao.getAllDonors().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
 }
+
+
+
 
